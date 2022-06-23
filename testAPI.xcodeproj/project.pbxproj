@@ -21,6 +21,10 @@
 		E173BB162863553500A217F0 /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = E173BB152863553500A217F0 /* ViewController.swift */; };
 		E173BB182863554B00A217F0 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = E173BB172863554B00A217F0 /* AppDelegate.swift */; };
 		E173BB1B2863558200A217F0 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = E173BB192863558200A217F0 /* Main.storyboard */; };
+		E173BB1D2864688100A217F0 /* weight.png in Resources */ = {isa = PBXBuildFile; fileRef = E173BB1C2864688100A217F0 /* weight.png */; };
+		E173BB1F2864689A00A217F0 /* type.png in Resources */ = {isa = PBXBuildFile; fileRef = E173BB1E2864689A00A217F0 /* type.png */; };
+		E173BB21286468C400A217F0 /* height.png in Resources */ = {isa = PBXBuildFile; fileRef = E173BB20286468C400A217F0 /* height.png */; };
+		E173BB2728646DB600A217F0 /* 025.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = E173BB2628646DB600A217F0 /* 025.mp3 */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -59,6 +63,10 @@
 		E173BB152863553500A217F0 /* ViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = ViewController.swift; path = "../../../../Desktop/testAPI 2/ViewController.swift"; sourceTree = "<group>"; };
 		E173BB172863554B00A217F0 /* AppDelegate.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = AppDelegate.swift; path = "../../../../Desktop/testAPI 2/AppDelegate.swift"; sourceTree = "<group>"; };
 		E173BB1A2863558200A217F0 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = "../../../../Desktop/testAPI 2/Base.lproj/Main.storyboard"; sourceTree = "<group>"; };
+		E173BB1C2864688100A217F0 /* weight.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = weight.png; path = ../../../../Desktop/weight.png; sourceTree = "<group>"; };
+		E173BB1E2864689A00A217F0 /* type.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = type.png; path = ../../../../Downloads/27176/type.png; sourceTree = "<group>"; };
+		E173BB20286468C400A217F0 /* height.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = height.png; path = ../../../../Downloads/49261/height.png; sourceTree = "<group>"; };
+		E173BB2628646DB600A217F0 /* 025.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = 025.mp3; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -120,6 +128,10 @@
 				E173BB0D2863550600A217F0 /* PathDrow.swift */,
 				E173BB0B286354F600A217F0 /* inMemory.swift */,
 				E173BB09286354E500A217F0 /* Detail.swift */,
+				E173BB1E2864689A00A217F0 /* type.png */,
+				E173BB1C2864688100A217F0 /* weight.png */,
+				E173BB2628646DB600A217F0 /* 025.mp3 */,
+				E173BB20286468C400A217F0 /* height.png */,
 				E173BAD428632E0000A217F0 /* Info.plist */,
 			);
 			path = testAPI;
@@ -246,8 +258,12 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				E173BB21286468C400A217F0 /* height.png in Resources */,
+				E173BB1F2864689A00A217F0 /* type.png in Resources */,
 				E173BB1B2863558200A217F0 /* Main.storyboard in Resources */,
 				E173BAD328632E0000A217F0 /* LaunchScreen.storyboard in Resources */,
+				E173BB1D2864688100A217F0 /* weight.png in Resources */,
+				E173BB2728646DB600A217F0 /* 025.mp3 in Resources */,
 				E173BAD028632E0000A217F0 /* Assets.xcassets in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
