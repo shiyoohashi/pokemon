@@ -25,6 +25,10 @@
 		E173BB1F2864689A00A217F0 /* type.png in Resources */ = {isa = PBXBuildFile; fileRef = E173BB1E2864689A00A217F0 /* type.png */; };
 		E173BB21286468C400A217F0 /* height.png in Resources */ = {isa = PBXBuildFile; fileRef = E173BB20286468C400A217F0 /* height.png */; };
 		E173BB2728646DB600A217F0 /* 025.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = E173BB2628646DB600A217F0 /* 025.mp3 */; };
+		E173BB652864915900A217F0 /* pokemonAPI.swift in Sources */ = {isa = PBXBuildFile; fileRef = E173BB642864915900A217F0 /* pokemonAPI.swift */; };
+		E173BB672865636700A217F0 /* ボール.jpeg in Resources */ = {isa = PBXBuildFile; fileRef = E173BB662865636700A217F0 /* ボール.jpeg */; };
+		E173BB6B2865648800A217F0 /* ロゴ.jpeg in Resources */ = {isa = PBXBuildFile; fileRef = E173BB6A2865648800A217F0 /* ロゴ.jpeg */; };
+		E173BB6D286564CA00A217F0 /* id.png in Resources */ = {isa = PBXBuildFile; fileRef = E173BB6C286564CA00A217F0 /* id.png */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -67,6 +71,10 @@
 		E173BB1E2864689A00A217F0 /* type.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = type.png; path = ../../../../Downloads/27176/type.png; sourceTree = "<group>"; };
 		E173BB20286468C400A217F0 /* height.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = height.png; path = ../../../../Downloads/49261/height.png; sourceTree = "<group>"; };
 		E173BB2628646DB600A217F0 /* 025.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = 025.mp3; sourceTree = "<group>"; };
+		E173BB642864915900A217F0 /* pokemonAPI.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = pokemonAPI.swift; sourceTree = "<group>"; };
+		E173BB662865636700A217F0 /* ボール.jpeg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = "ボール.jpeg"; sourceTree = "<group>"; };
+		E173BB6A2865648800A217F0 /* ロゴ.jpeg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; name = "ロゴ.jpeg"; path = "../../../../Downloads/ロゴ.jpeg"; sourceTree = "<group>"; };
+		E173BB6C286564CA00A217F0 /* id.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = id.png; path = ../../../../Downloads/27268/id.png; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -128,8 +136,12 @@
 				E173BB0D2863550600A217F0 /* PathDrow.swift */,
 				E173BB0B286354F600A217F0 /* inMemory.swift */,
 				E173BB09286354E500A217F0 /* Detail.swift */,
+				E173BB662865636700A217F0 /* ボール.jpeg */,
 				E173BB1E2864689A00A217F0 /* type.png */,
 				E173BB1C2864688100A217F0 /* weight.png */,
+				E173BB6A2865648800A217F0 /* ロゴ.jpeg */,
+				E173BB642864915900A217F0 /* pokemonAPI.swift */,
+				E173BB6C286564CA00A217F0 /* id.png */,
 				E173BB2628646DB600A217F0 /* 025.mp3 */,
 				E173BB20286468C400A217F0 /* height.png */,
 				E173BAD428632E0000A217F0 /* Info.plist */,
@@ -258,6 +270,9 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				E173BB672865636700A217F0 /* ボール.jpeg in Resources */,
+				E173BB6D286564CA00A217F0 /* id.png in Resources */,
+				E173BB6B2865648800A217F0 /* ロゴ.jpeg in Resources */,
 				E173BB21286468C400A217F0 /* height.png in Resources */,
 				E173BB1F2864689A00A217F0 /* type.png in Resources */,
 				E173BB1B2863558200A217F0 /* Main.storyboard in Resources */,
@@ -289,6 +304,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				E173BB652864915900A217F0 /* pokemonAPI.swift in Sources */,
 				E173BB0E2863550600A217F0 /* PathDrow.swift in Sources */,
 				E173BB0C286354F600A217F0 /* inMemory.swift in Sources */,
 				E173BB142863552B00A217F0 /* SceneDelegate.swift in Sources */,
