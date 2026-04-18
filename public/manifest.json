@@ -1,0 +1,19 @@
+{
+  "name": "ちくわ育成日記",
+  "short_name": "ちくわ",
+  "description": "ポメプーのちくわを育てよう！",
+  "start_url": "/pokemon/",
+  "scope": "/pokemon/",
+  "display": "standalone",
+  "background_color": "#fef3c7",
+  "theme_color": "#f59e0b",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "/pokemon/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

@@ -2,15 +2,17 @@
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import {
-  STAGES, EVOLUTION_AT, NEXT_STAGE, STAGE_START_STEPS,
-  determineBranch, WEATHER_MAP,
+  STAGES, EVO_AT_DAY, NEXT_STAGE,
+  determineBranch,  WEATHER_MAP,
   type CareProfile,
 } from "../data/dogStages";
 import { ITEMS } from "../data/items";
-import MainTab from "./MainTab";
-import ShopTab from "./ShopTab";
+import MainTab   from "./MainTab";
+import StepsTab  from "./StepsTab";
+import ShopTab   from "./ShopTab";
 import MiniGameTab from "./MiniGameTab";
-import AlbumTab from "./AlbumTab";
+import ZukanTab  from "./ZukanTab";
+import AlbumTab  from "./AlbumTab";
 
 type TamaState = {
   hunger: number;
@@ -27,7 +29,7 @@ type TamaState = {
   birthDate: number;
 };
 
-type Tab = "main" | "shop" | "game" | "album";
+type Tab = "main" | "steps" | "shop" | "game" | "zukan";
 type WeatherState = "idle" | "loading" | "denied";
 
 function clamp(v: number, min = 0, max = 100) {
@@ -40,38 +42,33 @@ function defaultTama(): TamaState {
     hunger: 0, hydration: 0, happiness: 80, vip: 0,
     isSulking: false, poopCount: 0,
     lastFedAt: now, lastWateredAt: now, lastPettedAt: now,
-    nextPoopAt: now + 2 * 3600_000,
+    nextPoopAt: now + 2 * 3_600_000,
     lastUpdatedAt: now, birthDate: now,
   };
 }
 
 function computeTama(prev: TamaState): TamaState {
   const now = Date.now();
-  const elapsedMs = now - prev.lastUpdatedAt;
-  const elapsedHours = elapsedMs / 3_600_000;
-  if (elapsedHours < 0.001) return prev;
+  const elapsedH = (now - prev.lastUpdatedAt) / 3_600_000;
+  if (elapsedH < 0.001) return prev;
 
   let { hunger, hydration, happiness, vip, isSulking, poopCount, nextPoopAt } = prev;
 
-  // Decay rates per hour
-  hunger    = clamp(hunger    + elapsedHours * 12);
-  hydration = clamp(hydration + elapsedHours * 16);
-  happiness = clamp(happiness - elapsedHours * 8, 0, 100);
+  hunger    = clamp(hunger    + elapsedH * 12);
+  hydration = clamp(hydration + elapsedH * 16);
+  happiness = clamp(happiness - elapsedH * 8, 0, 100);
 
   // Poop accumulation
   let poop = nextPoopAt;
   while (now >= poop && poopCount < 5) {
-    poopCount = Math.min(poopCount + 1, 5);
-    poop = poop + 2 * 3600_000;
+    poopCount++;
+    poop += 2 * 3_600_000;
   }
   nextPoopAt = poop;
 
-  // Neglect → sulking
   const neglected = hunger > 90 || hydration > 90 || poopCount >= 5;
   isSulking = neglected;
-
-  // Sulking penalty on happiness
-  if (isSulking) happiness = clamp(happiness - elapsedHours * 20, 0, 100);
+  if (isSulking) happiness = clamp(happiness - elapsedH * 20, 0, 100);
 
   return { ...prev, hunger, hydration, happiness, vip, isSulking, poopCount, nextPoopAt, lastUpdatedAt: now };
 }
@@ -105,44 +102,59 @@ export default function ChikuwaApp() {
   const [tamaAnim, setTamaAnim]     = useState<"feed" | "water" | "pet" | "clean" | null>(null);
   const [evolving, setEvolving]     = useState<string | null>(null);
   const [nameInput, setNameInput]   = useState("");
+  const [notifPerm, setNotifPerm]   = useState<NotificationPermission | "unsupported">("unsupported");
 
-  const evolvingRef = useRef(false);
-  const motionCleanupRef = useRef<(() => void) | null>(null);
+  const evolvingRef         = useRef(false);
+  const motionCleanupRef    = useRef<(() => void) | null>(null);
+  const lastHungerNotifRef  = useRef(0);
+  const lastPoopNotifRef    = useRef(0);
 
-  // ── Load from localStorage ──────────────────────────────────────────────
+  // ── Service worker + notification init ──────────────────────────────────
+  useEffect(() => {
+    if ("serviceWorker" in navigator) {
+      navigator.serviceWorker.register("/pokemon/sw.js", { scope: "/pokemon/" }).catch(() => {});
+    }
+    if ("Notification" in window) {
+      setNotifPerm(Notification.permission);
+    }
+  }, []);
+
+  function notify(title: string, body: string, tag: string) {
+    if (typeof window === "undefined" || !("Notification" in window)) return;
+    if (Notification.permission !== "granted") return;
+    new Notification(title, { body, icon: "/pokemon/icon.svg", tag });
+  }
+
+  // ── Load ─────────────────────────────────────────────────────────────────
   useEffect(() => {
     try {
-      const name = localStorage.getItem(LS.name) ?? "";
-      const sid  = localStorage.getItem(LS.stageId) ?? "egg";
-      const ts   = Number(localStorage.getItem(LS.totalSteps) ?? 0);
-      const today = Number(localStorage.getItem(LS.todaySteps) ?? 0);
-      const date  = localStorage.getItem(LS.date) ?? "";
-      const rawTama = localStorage.getItem(LS.tama);
-      const rawCare = localStorage.getItem(LS.care);
-      const rawCoins = localStorage.getItem(LS.coins);
-      const rawInv   = localStorage.getItem(LS.inventory);
+      const name   = localStorage.getItem(LS.name)   ?? "";
+      const sid    = localStorage.getItem(LS.stageId) ?? "egg";
+      const ts     = Number(localStorage.getItem(LS.totalSteps) ?? 0);
+      const today  = Number(localStorage.getItem(LS.todaySteps) ?? 0);
+      const date   = localStorage.getItem(LS.date)   ?? "";
+      const rawT   = localStorage.getItem(LS.tama);
+      const rawC   = localStorage.getItem(LS.care);
+      const rawCo  = localStorage.getItem(LS.coins);
+      const rawInv = localStorage.getItem(LS.inventory);
 
       setDogName(name);
       setStageId(sid);
       setTotalSteps(ts);
 
-      // Reset today steps if it's a new day
       const todayStr = new Date().toDateString();
       setTodaySteps(date === todayStr ? today : 0);
       localStorage.setItem(LS.date, todayStr);
 
-      if (rawTama) {
-        const parsed = JSON.parse(rawTama) as TamaState;
-        setTama(computeTama(parsed));
-      }
-      if (rawCare) setCare(JSON.parse(rawCare));
-      if (rawCoins) setCoins(Number(rawCoins));
-      if (rawInv)   setInventory(JSON.parse(rawInv));
-    } catch {/* ignore parse errors */}
+      if (rawT)   setTama(computeTama(JSON.parse(rawT) as TamaState));
+      if (rawC)   setCare(JSON.parse(rawC));
+      if (rawCo)  setCoins(Number(rawCo));
+      if (rawInv) setInventory(JSON.parse(rawInv));
+    } catch {/* ignore */}
     setLoaded(true);
   }, []);
 
-  // ── Persist ─────────────────────────────────────────────────────────────
+  // ── Persist ──────────────────────────────────────────────────────────────
   useEffect(() => {
     if (!loaded) return;
     localStorage.setItem(LS.name,       dogName);
@@ -161,8 +173,19 @@ export default function ChikuwaApp() {
     const id = setInterval(() => {
       setTama(prev => {
         const next = computeTama(prev);
+        // Neglect event
         if (next.isSulking && !prev.isSulking) {
           setCare(c => ({ ...c, neglectEvents: c.neglectEvents + 1 }));
+        }
+        // Notifications
+        const now = Date.now();
+        if (next.hunger > 80 && now - lastHungerNotifRef.current > 3_600_000) {
+          notify("ちくわより 🐾", "おなかペコペコだワン🍖 ごはんをあげて！", "hunger");
+          lastHungerNotifRef.current = now;
+        }
+        if (next.poopCount > prev.poopCount && now - lastPoopNotifRef.current > 600_000) {
+          notify("ちくわより 🐾", "うんちしたワン💩 きれいにして！", "poop");
+          lastPoopNotifRef.current = now;
         }
         return next;
       });
@@ -170,19 +193,33 @@ export default function ChikuwaApp() {
     return () => clearInterval(id);
   }, [loaded]);
 
-  // ── Evolution check ──────────────────────────────────────────────────────
+  // ── Time-based evolution ─────────────────────────────────────────────────
   useEffect(() => {
-    if (!loaded || evolvingRef.current) return;
-    const threshold = EVOLUTION_AT[stageId];
-    if (threshold === undefined) return;
-    if (totalSteps < threshold) return;
+    if (!loaded || evolvingRef.current || stageId === "egg") return;
+    const dayAlive  = Math.floor((Date.now() - tama.birthDate) / 86_400_000) + 1;
+    const evoAtDay  = EVO_AT_DAY[stageId];
+
+    // Adult graduation at day 30
+    if (evoAtDay === undefined && stageId.endsWith("_adult") && dayAlive >= 30) {
+      // Future: add to album and restart
+      return;
+    }
+
+    if (evoAtDay === undefined || dayAlive < evoAtDay) return;
 
     evolvingRef.current = true;
-
     let nextId: string;
+
     if (stageId === "baby") {
+      // Legacy compat: treat as pup
       const branch = determineBranch(care, totalSteps, tama.vip);
-      nextId = `${branch}_1`;
+      nextId = `${branch}_pup`;
+    } else if (stageId.endsWith("_pup") && !NEXT_STAGE[stageId]) {
+      evolvingRef.current = false;
+      return;
+    } else if (stageId === "egg") {
+      const branch = determineBranch(care, totalSteps, tama.vip);
+      nextId = `${branch}_pup`;
     } else {
       nextId = NEXT_STAGE[stageId];
       if (!nextId) { evolvingRef.current = false; return; }
@@ -194,27 +231,36 @@ export default function ChikuwaApp() {
       setEvolving(null);
       evolvingRef.current = false;
     }, 3000);
-  }, [loaded, stageId, totalSteps, care, tama.vip]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [loaded, stageId, tama.birthDate, tama.lastUpdatedAt, tama.vip, care, totalSteps]);
 
-  // ── Pedometer (DeviceMotion) ─────────────────────────────────────────────
+  // Also check evolution on page visibility change (app comes to foreground)
+  useEffect(() => {
+    if (!loaded) return;
+    const onVisible = () => {
+      setTama(prev => computeTama(prev));
+    };
+    document.addEventListener("visibilitychange", onVisible);
+    return () => document.removeEventListener("visibilitychange", onVisible);
+  }, [loaded]);
+
+  // ── Pedometer ────────────────────────────────────────────────────────────
   const startMotion = useCallback(() => {
-    let lastMag = 0;
-    let stepCooldown = 0;
-
+    let lastMag    = 0;
+    let cooldown   = 0;
     function handleMotion(e: DeviceMotionEvent) {
       const acc = e.accelerationIncludingGravity;
       if (!acc) return;
-      const mag = Math.sqrt((acc.x ?? 0) ** 2 + (acc.y ?? 0) ** 2 + (acc.z ?? 0) ** 2);
+      const mag  = Math.sqrt((acc.x ?? 0) ** 2 + (acc.y ?? 0) ** 2 + (acc.z ?? 0) ** 2);
       const diff = Math.abs(mag - lastMag);
-      lastMag = mag;
-      if (diff > 3 && stepCooldown <= 0) {
+      lastMag    = mag;
+      if (diff > 3 && cooldown <= 0) {
         setTotalSteps(s => s + 1);
         setTodaySteps(s => s + 1);
-        stepCooldown = 8;
+        cooldown = 8;
       }
-      if (stepCooldown > 0) stepCooldown--;
+      if (cooldown > 0) cooldown--;
     }
-
     window.addEventListener("devicemotion", handleMotion);
     return () => window.removeEventListener("devicemotion", handleMotion);
   }, []);
@@ -226,43 +272,31 @@ export default function ChikuwaApp() {
       setIsTracking(false);
       return;
     }
-
-    // iOS permission
     const DME = DeviceMotionEvent as unknown as { requestPermission?: () => Promise<string> };
     if (typeof DME.requestPermission === "function") {
       try {
-        const result = await DME.requestPermission();
-        if (result !== "granted") return;
+        const r = await DME.requestPermission();
+        if (r !== "granted") return;
       } catch { return; }
     }
-
     motionCleanupRef.current = startMotion();
     setIsTracking(true);
   }, [isTracking, startMotion]);
 
-  useEffect(() => {
-    return () => { motionCleanupRef.current?.(); };
-  }, []);
+  useEffect(() => () => { motionCleanupRef.current?.(); }, []);
 
   // ── Weather ──────────────────────────────────────────────────────────────
   const handleFetchWeather = useCallback(() => {
     if (!navigator.geolocation) return;
     setWeatherState("loading");
     navigator.geolocation.getCurrentPosition(
-      async (pos) => {
+      async ({ coords: { latitude: lat, longitude: lon } }) => {
         try {
-          const { latitude: lat, longitude: lon } = pos.coords;
-          const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,weather_code&timezone=auto`;
-          const res  = await fetch(url);
-          const data = await res.json();
-          setWeather({
-            temp: Math.round(data.current.temperature_2m),
-            code: data.current.weather_code,
-          });
+          const url  = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,weather_code&timezone=auto`;
+          const data = await (await fetch(url)).json();
+          setWeather({ temp: Math.round(data.current.temperature_2m), code: data.current.weather_code });
           setWeatherState("idle");
-        } catch {
-          setWeatherState("denied");
-        }
+        } catch { setWeatherState("denied"); }
       },
       () => setWeatherState("denied")
     );
@@ -275,29 +309,32 @@ export default function ChikuwaApp() {
   }
 
   const handleFeed = useCallback(() => {
-    setTama(prev => ({ ...prev, hunger: clamp(prev.hunger - 30), lastFedAt: Date.now() }));
+    setTama(p => ({ ...p, hunger: clamp(p.hunger - 15), lastFedAt: Date.now() }));
     setCare(c => ({ ...c, feedCount: c.feedCount + 1 }));
     showAnim("feed");
   }, []);
 
   const handleWater = useCallback(() => {
-    setTama(prev => ({ ...prev, hydration: clamp(prev.hydration - 30), lastWateredAt: Date.now() }));
+    setTama(p => ({ ...p, hydration: clamp(p.hydration - 15), lastWateredAt: Date.now() }));
     setCare(c => ({ ...c, waterCount: c.waterCount + 1 }));
     showAnim("water");
   }, []);
 
   const handlePet = useCallback(() => {
-    if (tama.isSulking) return;
-    const canPet = Date.now() - tama.lastPettedAt >= 60_000;
-    if (!canPet) return;
-    setTama(prev => ({ ...prev, happiness: clamp(prev.happiness + 15, 0, 100), lastPettedAt: Date.now() }));
+    const now = Date.now();
+    if (tama.isSulking || now - tama.lastPettedAt < 60_000) return;
+    setTama(p => ({ ...p, happiness: clamp(p.happiness + 10, 0, 100), lastPettedAt: now }));
     setCare(c => ({ ...c, petCount: c.petCount + 1 }));
     showAnim("pet");
   }, [tama.isSulking, tama.lastPettedAt]);
 
+  const handleTapDog = useCallback(() => {
+    handlePet();
+  }, [handlePet]);
+
   const handleClean = useCallback(() => {
     if (tama.poopCount === 0) return;
-    setTama(prev => ({ ...prev, poopCount: 0, happiness: clamp(prev.happiness + 5, 0, 100) }));
+    setTama(p => ({ ...p, poopCount: 0, happiness: clamp(p.happiness + 5, 0, 100) }));
     setCare(c => ({ ...c, cleanCount: c.cleanCount + 1 }));
     showAnim("clean");
   }, [tama.poopCount]);
@@ -309,11 +346,12 @@ export default function ChikuwaApp() {
 
   const handleHatch = useCallback(() => {
     const name = nameInput.trim() || "ちくわ";
-    const now = Date.now();
+    const now  = Date.now();
     setDogName(name);
-    setStageId("baby");
+    setStageId("egg");
     setTama({ ...defaultTama(), birthDate: now, lastUpdatedAt: now });
     setCare({ feedCount: 0, waterCount: 0, petCount: 0, cleanCount: 0, neglectEvents: 0, vipItemsUsed: 0 });
+    // After naming, immediately mark egg as "started", evolution at day 3
   }, [nameInput]);
 
   const handleBuy = useCallback((itemId: string) => {
@@ -327,27 +365,26 @@ export default function ChikuwaApp() {
     const item = ITEMS[itemId];
     if (!item || (inventory[itemId] ?? 0) <= 0) return;
     setInventory(inv => ({ ...inv, [itemId]: inv[itemId] - 1 }));
-
-    const isVipItem = (item.effect.vip ?? 0) > 0;
-    if (isVipItem) setCare(c => ({ ...c, vipItemsUsed: c.vipItemsUsed + 1 }));
-
-    setTama(prev => ({
-      ...prev,
-      hunger:    item.effect.hunger    !== undefined ? clamp(prev.hunger    + item.effect.hunger)               : prev.hunger,
-      hydration: item.effect.hydration !== undefined ? clamp(prev.hydration + item.effect.hydration)            : prev.hydration,
-      happiness: item.effect.happiness !== undefined ? clamp(prev.happiness + item.effect.happiness, 0, 100)    : prev.happiness,
-      vip:       item.effect.vip       !== undefined ? clamp(prev.vip       + item.effect.vip,       0, 100)    : prev.vip,
+    const isVip = (item.effect.vip ?? 0) > 0;
+    if (isVip) setCare(c => ({ ...c, vipItemsUsed: c.vipItemsUsed + 1 }));
+    setTama(p => ({
+      ...p,
+      hunger:    item.effect.hunger    !== undefined ? clamp(p.hunger    + item.effect.hunger)            : p.hunger,
+      hydration: item.effect.hydration !== undefined ? clamp(p.hydration + item.effect.hydration)         : p.hydration,
+      happiness: item.effect.happiness !== undefined ? clamp(p.happiness + item.effect.happiness, 0, 100) : p.happiness,
+      vip:       item.effect.vip       !== undefined ? clamp(p.vip       + item.effect.vip,       0, 100) : p.vip,
     }));
-
-    const animMap: Record<string, "feed" | "water" | "pet"> = {
-      food: "feed", drink: "water", toy: "pet",
-    };
+    const animMap: Record<string, "feed" | "water" | "pet"> = { food: "feed", drink: "water", toy: "pet" };
     const anim = animMap[item.category];
     if (anim) showAnim(anim);
   }, [inventory]);
 
-  const handleEarnCoins = useCallback((n: number) => {
-    setCoins(c => c + n);
+  const handleEarnCoins = useCallback((n: number) => setCoins(c => c + n), []);
+
+  const handleRequestNotif = useCallback(async () => {
+    if (!("Notification" in window)) return;
+    const perm = await Notification.requestPermission();
+    setNotifPerm(perm);
   }, []);
 
   // ── Render ────────────────────────────────────────────────────────────────
@@ -359,8 +396,8 @@ export default function ChikuwaApp() {
     );
   }
 
-  // Egg / naming screen
-  if (stageId === "egg") {
+  // Egg naming screen
+  if (stageId === "egg" && !dogName) {
     return (
       <div className="min-h-screen bg-gradient-to-b from-yellow-100 to-amber-200 flex flex-col items-center justify-center px-6 gap-6">
         <div className="text-center">
@@ -374,6 +411,7 @@ export default function ChikuwaApp() {
             type="text"
             value={nameInput}
             onChange={e => setNameInput(e.target.value)}
+            onKeyDown={e => e.key === "Enter" && handleHatch()}
             placeholder="ちくわ"
             maxLength={10}
             className="w-full border-2 border-amber-300 rounded-xl px-4 py-3 text-lg font-bold text-amber-900 placeholder-amber-300 bg-white/80 outline-none focus:border-amber-500"
@@ -389,58 +427,61 @@ export default function ChikuwaApp() {
     );
   }
 
-  const stage = STAGES[stageId] ?? STAGES["egg"];
-  const wInfo = weather ? (WEATHER_MAP[weather.code] ?? null) : null;
-  const bgClass = wInfo?.scene === "indoor_rain" ? "from-slate-300 to-slate-400"
-                : wInfo?.scene === "indoor_snow"  ? "from-blue-100 to-slate-200"
-                : "from-amber-100 to-orange-100";
+  const stage    = STAGES[stageId] ?? STAGES["egg"];
+  const wInfo    = weather ? (WEATHER_MAP[weather.code] ?? null) : null;
+  const bgClass  = wInfo?.scene === "indoor_rain" ? "from-slate-300 to-slate-400"
+                 : wInfo?.scene === "indoor_snow"  ? "from-blue-100 to-slate-200"
+                 : "from-amber-100 to-orange-100";
 
-  const TABS: { id: Tab; icon: string; label: string }[] = [
-    { id: "main",  icon: "🏠", label: "ホーム" },
-    { id: "shop",  icon: "🛍️", label: "ショップ" },
-    { id: "game",  icon: "🎮", label: "ゲーム" },
-    { id: "album", icon: "📸", label: "アルバム" },
+  const TABS = [
+    { id: "main"  as Tab, icon: "🏠", label: "ホーム" },
+    { id: "steps" as Tab, icon: "🦶", label: "歩数" },
+    { id: "shop"  as Tab, icon: "🛍️", label: "ショップ" },
+    { id: "game"  as Tab, icon: "🎮", label: "ゲーム" },
+    { id: "zukan" as Tab, icon: "📖", label: "図鑑" },
   ];
 
   return (
     <div className={`min-h-screen bg-gradient-to-b ${bgClass} flex flex-col`}>
       {/* Evolution overlay */}
       {evolving && (
-        <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-black/70 gap-6">
-          <div className="text-6xl animate-spin">{stage.emoji}</div>
-          <div className="text-3xl animate-pulse">✨ 進化中... ✨</div>
-          <div className="text-5xl">{(STAGES[evolving] ?? STAGES["egg"]).emoji}</div>
-          <p className="text-white text-xl font-black">{(STAGES[evolving] ?? STAGES["egg"]).name}</p>
+        <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-black/70 gap-4">
+          <div className="text-6xl animate-evo-flash">{stage.emoji}</div>
+          <div className="text-3xl text-white animate-pulse font-black">✨ 進化中... ✨</div>
+          <div className="text-6xl">{(STAGES[evolving] ?? STAGES["egg"]).emoji}</div>
+          <p className="text-white text-xl font-black mt-2">{(STAGES[evolving] ?? STAGES["egg"]).name}</p>
         </div>
       )}
 
-      {/* Main content */}
       <div className="flex-1 overflow-y-auto pb-20">
         {tab === "main"  && (
           <MainTab
             dogName={dogName} stageId={stageId} tama={tama}
-            totalSteps={totalSteps} todaySteps={todaySteps}
-            isTracking={isTracking} weather={weather}
-            weatherState={weatherState} tamaAnim={tamaAnim}
+            weather={weather} weatherState={weatherState} tamaAnim={tamaAnim}
             onFeed={handleFeed} onWater={handleWater}
             onPet={handlePet} onClean={handleClean}
-            onAddSteps={handleAddSteps}
-            onToggleTracking={handleToggleTracking}
+            onTapDog={handleTapDog}
             onFetchWeather={handleFetchWeather}
           />
         )}
-        {tab === "shop"  && (
-          <ShopTab
-            coins={coins} inventory={inventory}
-            onBuy={handleBuy} onUseItem={handleUseItem}
+        {tab === "steps" && (
+          <StepsTab
+            totalSteps={totalSteps} todaySteps={todaySteps}
+            isTracking={isTracking} notifPermission={notifPerm}
+            onAddSteps={handleAddSteps}
+            onToggleTracking={handleToggleTracking}
+            onRequestNotif={handleRequestNotif}
           />
         )}
+        {tab === "shop"  && (
+          <ShopTab coins={coins} inventory={inventory} onBuy={handleBuy} onUseItem={handleUseItem} />
+        )}
         {tab === "game"  && <MiniGameTab onEarnCoins={handleEarnCoins} />}
-        {tab === "album" && <AlbumTab />}
+        {tab === "zukan" && <ZukanTab currentStageId={stageId} />}
       </div>
 
       {/* Bottom tab bar */}
-      <nav className="fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur border-t border-amber-100 flex">
+      <nav className="fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur border-t border-amber-100 flex safe-area-bottom">
         {TABS.map(t => (
           <button
             key={t.id}
