@@ -1,5 +1,5 @@
-import DogApp from "./components/DogApp";
+import ChikuwaApp from "./components/ChikuwaApp";
 
 export default function Home() {
-  return <DogApp />;
+  return <ChikuwaApp />;
 }
