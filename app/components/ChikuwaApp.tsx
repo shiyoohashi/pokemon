@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import {
   STAGES, EVO_AT_DAY, getEvolutionTarget, migrateStageId,
-  WEATHER_MAP, type CareProfile,
+  WEATHER_MAP, type CareProfile, type CollectionEntry,
 } from "../data/dogStages";
 import { ITEMS } from "../data/items";
 import MainTab    from "./MainTab";
@@ -61,6 +61,7 @@ const LS = {
   name: "ck_name", stageId: "ck_stageId",
   totalSteps: "ck_totalSteps", todaySteps: "ck_todaySteps", date: "ck_date",
   tama: "ck_tama", care: "ck_care", coins: "ck_coins", inventory: "ck_inventory",
+  collection: "ck_collection",
 };
 
 export default function ChikuwaApp() {
@@ -74,6 +75,8 @@ export default function ChikuwaApp() {
   const [care, setCare]             = useState<CareProfile>({ feedCount: 0, waterCount: 0, petCount: 0, cleanCount: 0, neglectEvents: 0, vipItemsUsed: 0 });
   const [coins, setCoins]           = useState(0);
   const [inventory, setInventory]   = useState<Record<string, number>>({});
+  const [collection, setCollection] = useState<CollectionEntry[]>([]);
+  const [graduated, setGraduated]   = useState<CollectionEntry | null>(null);
   const [isTracking, setIsTracking] = useState(false);
   const [weather, setWeather]       = useState<{ temp: number; code: number } | null>(null);
   const [weatherState, setWeatherState] = useState<WeatherState>("denied");
@@ -84,6 +87,7 @@ export default function ChikuwaApp() {
   const [notifPerm, setNotifPerm]   = useState<NotificationPermission | "unsupported">("unsupported");
 
   const evolvingRef      = useRef(false);
+  const graduatingRef    = useRef(false);
   const motionCleanupRef = useRef<(() => void) | null>(null);
   const lastHungerNotif  = useRef(0);
   const lastPoopNotif    = useRef(0);
@@ -115,6 +119,7 @@ export default function ChikuwaApp() {
       const rawC   = localStorage.getItem(LS.care);
       const rawCo  = localStorage.getItem(LS.coins);
       const rawInv = localStorage.getItem(LS.inventory);
+      const rawCol = localStorage.getItem(LS.collection);
 
       setDogName(name);
       setStageId(sid);
@@ -126,6 +131,7 @@ export default function ChikuwaApp() {
       if (rawC)   setCare(JSON.parse(rawC));
       if (rawCo)  setCoins(Number(rawCo));
       if (rawInv) setInventory(JSON.parse(rawInv));
+      if (rawCol) setCollection(JSON.parse(rawCol));
     } catch { /* ignore */ }
     setLoaded(true);
   }, []);
@@ -141,7 +147,8 @@ export default function ChikuwaApp() {
     localStorage.setItem(LS.care,       JSON.stringify(care));
     localStorage.setItem(LS.coins,      String(coins));
     localStorage.setItem(LS.inventory,  JSON.stringify(inventory));
-  }, [loaded, dogName, stageId, totalSteps, todaySteps, tama, care, coins, inventory]);
+    localStorage.setItem(LS.collection, JSON.stringify(collection));
+  }, [loaded, dogName, stageId, totalSteps, todaySteps, tama, care, coins, inventory, collection]);
 
   // ── Tama tick every 30s ────────────────────────────────────
   useEffect(() => {
@@ -193,6 +200,30 @@ export default function ChikuwaApp() {
     }, 3000);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [loaded, stageId, tama.lastUpdatedAt, tama.birthDate, tama.vip, care, totalSteps]);
+
+  // ── Graduation (adult Day 30) ─────────────────────────────
+  useEffect(() => {
+    if (!loaded || graduatingRef.current || !stageId || !stageId.includes("_adult")) return;
+    const dayAlive = Math.floor((Date.now() - tama.birthDate) / 86_400_000) + 1;
+    if (dayAlive < 30) return;
+
+    graduatingRef.current = true;
+    const s = STAGES[stageId];
+    const entry: CollectionEntry = {
+      id: String(Date.now()),
+      name: dogName,
+      stageId,
+      emoji: s?.emoji ?? "🐕",
+      stageName: s?.name ?? stageId,
+      job: s?.job,
+      graduatedAt: Date.now(),
+      totalDays: dayAlive,
+      totalSteps,
+      care,
+    };
+    setGraduated(entry);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [loaded, stageId, tama.lastUpdatedAt, tama.birthDate, dogName, totalSteps, care]);
 
   // ── Pedometer ─────────────────────────────────────────────
   const startMotion = useCallback(() => {
@@ -280,10 +311,25 @@ export default function ChikuwaApp() {
     setTotalSteps(s => s + n); setTodaySteps(s => s + n);
   }, []);
 
-  // Debug: shift birthDate back 1 day to trigger evolution
   const handleDebugAddDay = useCallback(() => {
     setTama(p => ({ ...p, birthDate: p.birthDate - 86_400_000 }));
   }, []);
+
+  // Called from graduation overlay — save entry + reset to new egg
+  const handleGraduate = useCallback(() => {
+    if (!graduated) return;
+    setCollection(prev => [graduated, ...prev]);
+    setGraduated(null);
+    graduatingRef.current = false;
+    setDogName("");
+    setNameInput("");
+    setStageId("egg");
+    const now = Date.now();
+    setTama({ ...defaultTama(), birthDate: now, lastUpdatedAt: now });
+    setCare({ feedCount: 0, waterCount: 0, petCount: 0, cleanCount: 0, neglectEvents: 0, vipItemsUsed: 0 });
+    setTotalSteps(0); setTodaySteps(0); setInventory({});
+    // Coins are kept as a reward for graduating
+  }, [graduated]);
 
   const handleHatch = useCallback(() => {
     const name = nameInput.trim() || "ちくわ";
@@ -329,6 +375,53 @@ export default function ChikuwaApp() {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[#FAFAFA]">
         <div className="text-4xl animate-float">🐾</div>
+      </div>
+    );
+  }
+
+  // Graduation overlay
+  if (graduated) {
+    return (
+      <div className="min-h-screen bg-[#FAFAFA] flex flex-col items-center justify-center px-6 gap-6 text-center">
+        <div className="text-6xl animate-float">{graduated.emoji}</div>
+        <div>
+          <p className="text-3xl font-black text-gray-900">🎓 卒業おめでとう！</p>
+          <p className="text-lg font-bold mt-1" style={{ color: "#E1306C" }}>{graduated.name}</p>
+        </div>
+        <div className="bg-white rounded-3xl p-6 w-full max-w-sm shadow-sm border border-gray-100 flex flex-col gap-3 text-left">
+          <div className="flex items-center gap-3">
+            <span className="text-4xl">{graduated.emoji}</span>
+            <div>
+              <p className="font-black text-gray-900">{graduated.stageName}</p>
+              {graduated.job && (
+                <p className="text-sm font-bold" style={{ color: "#833AB4" }}>💼 {graduated.job}</p>
+              )}
+            </div>
+          </div>
+          <div className="border-t border-gray-100 pt-3 grid grid-cols-2 gap-2 text-xs text-gray-600">
+            <div className="bg-gray-50 rounded-xl p-2">
+              <p className="text-gray-400">育成日数</p>
+              <p className="font-black text-gray-900 text-base">{graduated.totalDays}日</p>
+            </div>
+            <div className="bg-gray-50 rounded-xl p-2">
+              <p className="text-gray-400">総歩数</p>
+              <p className="font-black text-gray-900 text-base">{graduated.totalSteps.toLocaleString()}歩</p>
+            </div>
+            <div className="bg-gray-50 rounded-xl p-2">
+              <p className="text-gray-400">ごはん回数</p>
+              <p className="font-black text-gray-900 text-base">{graduated.care.feedCount}回</p>
+            </div>
+            <div className="bg-gray-50 rounded-xl p-2">
+              <p className="text-gray-400">なでた回数</p>
+              <p className="font-black text-gray-900 text-base">{graduated.care.petCount}回</p>
+            </div>
+          </div>
+          <p className="text-xs text-gray-400 text-center">コレクションに保存されます🐾</p>
+        </div>
+        <button onClick={handleGraduate}
+          className="ig-btn w-full max-w-sm py-4 rounded-2xl font-black text-lg">
+          🥚 次のたまごへ！
+        </button>
       </div>
     );
   }
@@ -389,9 +482,11 @@ export default function ChikuwaApp() {
             dogName={dogName} stageId={stageId} tama={tama}
             weather={weather} weatherState={weatherState}
             tamaAnim={tamaAnim} actionLocked={actionLocked}
+            inventory={inventory}
             onFeed={handleFeed} onWater={handleWater}
             onPet={handlePet} onClean={handleClean}
             onTapDog={handleTapDog} onFetchWeather={handleFetchWeather}
+            onUseItem={handleUseItem} onDebugAddDay={handleDebugAddDay}
           />
         )}
         {tab === "steps" && (
@@ -399,14 +494,14 @@ export default function ChikuwaApp() {
             totalSteps={totalSteps} todaySteps={todaySteps}
             isTracking={isTracking} notifPermission={notifPerm}
             onAddSteps={handleAddSteps} onToggleTracking={handleToggleTracking}
-            onRequestNotif={handleRequestNotif} onDebugAddDay={handleDebugAddDay}
+            onRequestNotif={handleRequestNotif}
           />
         )}
         {tab === "shop"  && (
           <ShopTab coins={coins} inventory={inventory} onBuy={handleBuy} onUseItem={handleUseItem} />
         )}
         {tab === "game"  && <MiniGameTab onEarnCoins={handleEarnCoins} />}
-        {tab === "zukan" && <ZukanTab currentStageId={stageId} />}
+        {tab === "zukan" && <ZukanTab currentStageId={stageId} collection={collection} />}
       </div>
 
       {/* Tab bar */}

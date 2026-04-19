@@ -1,9 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { STAGES, BRANCHES, BRANCH_INFO, type BranchId } from "../data/dogStages";
+import { STAGES, BRANCHES, BRANCH_INFO, type BranchId, type CollectionEntry } from "../data/dogStages";
 
-type Props = { currentStageId: string };
+type Props = { currentStageId: string; collection: CollectionEntry[] };
 
 const YOUNG_IDS: Record<BranchId, [string, string]> = {
   active:  ["active_young_a",  "active_young_b"],
@@ -38,18 +38,13 @@ function StageCard({ id, current, small }: { id: string; current: boolean; small
   );
 }
 
-export default function ZukanTab({ currentStageId }: Props) {
+function ZukanView({ currentStageId }: { currentStageId: string }) {
   const [openBranch, setOpenBranch] = useState<BranchId | null>(null);
   const currentStage  = STAGES[currentStageId];
   const currentBranch = currentStage?.branch;
 
   return (
-    <div className="px-4 py-4 flex flex-col gap-4">
-      <div className="pt-2">
-        <h2 className="text-lg font-black text-gray-900">📖 進化図鑑</h2>
-        <p className="text-xs text-gray-500 mt-0.5">1 → 5 → 10 → 20 の進化ツリー</p>
-      </div>
-
+    <div className="flex flex-col gap-4">
       {/* Egg */}
       <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 flex items-center gap-3">
         <span className="text-4xl">🥚</span>
@@ -75,7 +70,6 @@ export default function ZukanTab({ currentStageId }: Props) {
           <div key={branch} className={`bg-white rounded-2xl shadow-sm overflow-hidden border ${
             isCurrent ? "border-[#E1306C]" : "border-gray-100"
           }`}>
-            {/* Branch header */}
             <button
               className="w-full flex items-center gap-3 px-4 py-3"
               onClick={() => setOpenBranch(isOpen ? null : branch)}
@@ -94,7 +88,6 @@ export default function ZukanTab({ currentStageId }: Props) {
               <span className="text-gray-400 text-xs ml-1">{isOpen ? "▲" : "▼"}</span>
             </button>
 
-            {/* Pup summary when collapsed */}
             {!isOpen && (
               <div className="px-4 pb-3 flex items-center gap-2">
                 <StageCard id={`${branch}_pup`} current={currentStageId === `${branch}_pup`} small />
@@ -103,10 +96,8 @@ export default function ZukanTab({ currentStageId }: Props) {
               </div>
             )}
 
-            {/* Full tree when open */}
             {isOpen && (
               <div className="px-3 pb-4 flex flex-col gap-3">
-                {/* Pup row */}
                 <div className="flex items-center gap-1">
                   <p className="text-[9px] font-bold text-gray-500 w-8 flex-shrink-0">幼犬</p>
                   <div className="flex-1">
@@ -116,7 +107,6 @@ export default function ZukanTab({ currentStageId }: Props) {
                   <p className="text-[9px] text-gray-400 flex-shrink-0">2種に分岐</p>
                 </div>
 
-                {/* Young rows */}
                 {YOUNG_IDS[branch].map((youngId, yi) => {
                   const adults = ADULT_IDS[branch][yi];
                   return (
@@ -152,6 +142,95 @@ export default function ZukanTab({ currentStageId }: Props) {
       <p className="text-center text-xs text-gray-400 pb-3">
         全20種の成犬 + 5職業を目指そう🐾
       </p>
+    </div>
+  );
+}
+
+function CollectionView({ collection }: { collection: CollectionEntry[] }) {
+  if (collection.length === 0) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[40vh] gap-4 text-center">
+        <div className="text-5xl">📭</div>
+        <p className="text-sm font-bold text-gray-600">まだ卒業したちくわがいないよ</p>
+        <p className="text-xs text-gray-400">30日間育てると卒業してコレクションに残るよ🐾</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex flex-col gap-3 pb-3">
+      <p className="text-xs text-gray-500">{collection.length}匹のちくわが旅立っていったよ🐾</p>
+      {collection.map(entry => (
+        <div key={entry.id} className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
+          <div className="flex items-center gap-3 mb-3">
+            <span className="text-4xl">{entry.emoji}</span>
+            <div className="flex-1 min-w-0">
+              <p className="font-black text-gray-900">{entry.name}</p>
+              <p className="text-xs text-gray-500">{entry.stageName}</p>
+              {entry.job && (
+                <p className="text-xs font-bold" style={{ color: "#833AB4" }}>💼 {entry.job}</p>
+              )}
+            </div>
+            <p className="text-[10px] text-gray-400 text-right flex-shrink-0">
+              {new Date(entry.graduatedAt).toLocaleDateString("ja-JP", { month: "short", day: "numeric" })}
+              <br/>卒業
+            </p>
+          </div>
+          <div className="grid grid-cols-4 gap-2 text-center text-[10px]">
+            <div className="bg-gray-50 rounded-xl py-1.5">
+              <p className="text-gray-400">育成日数</p>
+              <p className="font-black text-gray-700">{entry.totalDays}日</p>
+            </div>
+            <div className="bg-gray-50 rounded-xl py-1.5">
+              <p className="text-gray-400">総歩数</p>
+              <p className="font-black text-gray-700">{entry.totalSteps >= 1000 ? `${(entry.totalSteps / 1000).toFixed(1)}k` : entry.totalSteps}</p>
+            </div>
+            <div className="bg-gray-50 rounded-xl py-1.5">
+              <p className="text-gray-400">ごはん</p>
+              <p className="font-black text-gray-700">{entry.care.feedCount}回</p>
+            </div>
+            <div className="bg-gray-50 rounded-xl py-1.5">
+              <p className="text-gray-400">なでた</p>
+              <p className="font-black text-gray-700">{entry.care.petCount}回</p>
+            </div>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+export default function ZukanTab({ currentStageId, collection }: Props) {
+  const [view, setView] = useState<"zukan" | "collection">("zukan");
+
+  return (
+    <div className="px-4 py-4 flex flex-col gap-4">
+      <div className="pt-2">
+        <h2 className="text-lg font-black text-gray-900">
+          {view === "zukan" ? "📖 進化図鑑" : "🏆 コレクション"}
+        </h2>
+        <p className="text-xs text-gray-500 mt-0.5">
+          {view === "zukan" ? "1 → 5 → 10 → 20 の進化ツリー" : "旅立ったちくわたちの記録"}
+        </p>
+      </div>
+
+      {/* Sub-tab toggle */}
+      <div className="flex bg-gray-100 rounded-2xl p-1 gap-1">
+        {(["zukan", "collection"] as const).map(v => (
+          <button key={v} onClick={() => setView(v)}
+            className={`flex-1 py-2 rounded-xl text-xs font-black transition-all ${
+              view === v ? "bg-white shadow-sm" : "text-gray-400"
+            }`}
+            style={view === v ? { color: "#E1306C" } : {}}>
+            {v === "zukan" ? "📖 進化図鑑" : `🏆 コレクション${collection.length > 0 ? ` (${collection.length})` : ""}`}
+          </button>
+        ))}
+      </div>
+
+      {view === "zukan"
+        ? <ZukanView currentStageId={currentStageId} />
+        : <CollectionView collection={collection} />
+      }
     </div>
   );
 }

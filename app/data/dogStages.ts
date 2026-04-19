@@ -281,6 +281,19 @@ export type CareProfile = {
   vipItemsUsed: number;
 };
 
+export type CollectionEntry = {
+  id: string;
+  name: string;
+  stageId: string;
+  emoji: string;
+  stageName: string;
+  job?: string;
+  graduatedAt: number;
+  totalDays: number;
+  totalSteps: number;
+  care: CareProfile;
+};
+
 // ── Branch determination functions ──────────────────────────
 
 export function determineBranch(care: CareProfile, totalSteps: number, vip: number): BranchId {

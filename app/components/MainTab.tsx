@@ -2,6 +2,7 @@
 
 import { useState, useCallback } from "react";
 import { STAGES, EVO_AT_DAY, WEATHER_MAP, type Stage } from "../data/dogStages";
+import { ITEMS } from "../data/items";
 
 type TamaState = {
   hunger: number; hydration: number; happiness: number; vip: number;
@@ -15,9 +16,12 @@ type Props = {
   weatherState: "idle" | "loading" | "denied";
   tamaAnim: "feed" | "water" | "pet" | "clean" | null;
   actionLocked: boolean;
+  inventory: Record<string, number>;
   onFeed: () => void; onWater: () => void;
   onPet: () => void; onClean: () => void;
   onTapDog: () => void; onFetchWeather: () => void;
+  onUseItem: (itemId: string) => void;
+  onDebugAddDay: () => void;
 };
 
 function sceneBg(code: number | null, scene?: string) {
@@ -48,7 +52,8 @@ function speechMsg(tama: TamaState, dogName: string): string {
 
 export default function MainTab({
   dogName, stageId, tama, weather, weatherState, tamaAnim, actionLocked,
-  onFeed, onWater, onPet, onClean, onTapDog, onFetchWeather,
+  inventory, onFeed, onWater, onPet, onClean, onTapDog, onFetchWeather,
+  onUseItem, onDebugAddDay,
 }: Props) {
   const [petAnim, setPetAnim]   = useState<"happy" | "shake" | null>(null);
   const [speechKey, setSpeechKey] = useState(0);
@@ -70,8 +75,8 @@ export default function MainTab({
   }, [canPet, tama.isSulking, actionLocked, onTapDog]);
 
   // Positive bar values: right = MAX = GOOD
-  const satiety   = 100 - tama.hunger;     // high = well-fed
-  const hydrated  = 100 - tama.hydration;  // high = well-hydrated
+  const satiety   = 100 - tama.hunger;
+  const hydrated  = 100 - tama.hydration;
 
   const meters = [
     {
@@ -104,6 +109,9 @@ export default function MainTab({
     },
   ];
 
+  // Items in inventory (count > 0)
+  const heldItems = Object.entries(inventory).filter(([, count]) => count > 0);
+
   return (
     <div className="flex flex-col gap-3 px-4 pb-4">
       {/* Header */}
@@ -117,20 +125,27 @@ export default function MainTab({
             </p>
           )}
         </div>
-        {/* Weather widget */}
-        <div className="bg-white rounded-2xl px-3 py-2 min-w-[60px] text-center shadow-sm border border-gray-100">
-          {weatherState === "loading" && <p className="text-xs text-gray-400">取得中</p>}
-          {weatherState === "denied"  && (
-            <button onClick={onFetchWeather} className="text-xs ig-text font-bold">📍 天気</button>
-          )}
-          {weatherState === "idle" && wInfo && weather ? (
-            <>
-              <div className="text-2xl leading-none">{wInfo.emoji}</div>
-              <div className="text-xs font-bold text-gray-700 mt-0.5">{weather.temp}°C</div>
-            </>
-          ) : weatherState === "idle" ? (
-            <button onClick={onFetchWeather} className="text-[10px] ig-text font-bold">天気取得</button>
-          ) : null}
+        <div className="flex items-center gap-2">
+          {/* Debug button */}
+          <button onClick={onDebugAddDay}
+            className="bg-gray-100 border border-dashed border-gray-300 rounded-xl px-2 py-1.5 text-[10px] font-bold text-gray-500 active:bg-gray-200">
+            🛠+1日
+          </button>
+          {/* Weather widget */}
+          <div className="bg-white rounded-2xl px-3 py-2 min-w-[60px] text-center shadow-sm border border-gray-100">
+            {weatherState === "loading" && <p className="text-xs text-gray-400">取得中</p>}
+            {weatherState === "denied"  && (
+              <button onClick={onFetchWeather} className="text-xs ig-text font-bold">📍 天気</button>
+            )}
+            {weatherState === "idle" && wInfo && weather ? (
+              <>
+                <div className="text-2xl leading-none">{wInfo.emoji}</div>
+                <div className="text-xs font-bold text-gray-700 mt-0.5">{weather.temp}°C</div>
+              </>
+            ) : weatherState === "idle" ? (
+              <button onClick={onFetchWeather} className="text-[10px] ig-text font-bold">天気取得</button>
+            ) : null}
+          </div>
         </div>
       </div>
 
@@ -196,7 +211,7 @@ export default function MainTab({
 
       <p className="text-center text-sm font-black text-gray-900 -mt-1">{stage.name}</p>
 
-      {/* Status bars — positive direction (right = MAX) */}
+      {/* Status bars */}
       <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 space-y-3">
         <p className="text-xs font-black text-gray-700">📊 ステータス</p>
         {meters.map(({ label, val, bar, bg, text }) => (
@@ -212,6 +227,30 @@ export default function MainTab({
           </div>
         ))}
       </div>
+
+      {/* Inventory quick-use strip */}
+      {heldItems.length > 0 && (
+        <div>
+          <p className="text-xs font-bold text-gray-600 mb-2">🎒 もちものを使う</p>
+          <div className="flex gap-2 overflow-x-auto pb-1" style={{ scrollbarWidth: "none" }}>
+            {heldItems.map(([id, count]) => {
+              const item = ITEMS[id];
+              if (!item) return null;
+              return (
+                <button key={id} onClick={() => onUseItem(id)}
+                  disabled={actionLocked}
+                  className={`flex-shrink-0 bg-white border border-gray-100 rounded-2xl px-3 py-2 flex flex-col items-center gap-0.5 shadow-sm min-w-[64px] transition-all ${
+                    actionLocked ? "opacity-50" : "active:scale-95"
+                  }`}>
+                  <span className="text-2xl">{item.emoji}</span>
+                  <span className="text-[10px] font-bold text-gray-700 whitespace-nowrap">{item.name}</span>
+                  <span className="text-[10px] text-gray-400">×{count}</span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
       {/* Action buttons */}
       <div className="grid grid-cols-4 gap-2">

@@ -10,13 +10,12 @@ type Props = {
   onAddSteps: (n: number) => void;
   onToggleTracking: () => void;
   onRequestNotif: () => void;
-  onDebugAddDay: () => void;
 };
 
 export default function StepsTab({
   totalSteps, todaySteps, isTracking,
   notifPermission,
-  onAddSteps, onToggleTracking, onRequestNotif, onDebugAddDay,
+  onAddSteps, onToggleTracking, onRequestNotif,
 }: Props) {
   const dailyPct = Math.min((todaySteps / DAILY_GOAL) * 100, 100);
 
@@ -106,16 +105,6 @@ export default function StepsTab({
             </button>
           </div>
         )}
-      </div>
-
-      {/* Debug */}
-      <div className="bg-gray-50 rounded-2xl p-4 border border-dashed border-gray-200">
-        <p className="text-xs font-bold text-gray-500 mb-2">🛠 デバッグ</p>
-        <button onClick={onDebugAddDay}
-          className="w-full py-2.5 bg-white border border-gray-200 rounded-xl text-sm font-bold text-gray-600 active:bg-gray-100">
-          🐣 +1日（進化テスト）
-        </button>
-        <p className="text-[10px] text-gray-400 mt-1 text-center">誕生日を1日戻して進化条件を確認できます</p>
       </div>
     </div>
   );
