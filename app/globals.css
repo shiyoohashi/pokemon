@@ -1,33 +1,57 @@
 @import "tailwindcss";
 
-@keyframes pet-happy {
-  0%   { transform: scale(1)    rotate(0deg); }
-  20%  { transform: scale(1.35) rotate(-12deg); }
-  50%  { transform: scale(1.2)  rotate(10deg); }
-  75%  { transform: scale(1.1)  rotate(-5deg); }
-  100% { transform: scale(1)    rotate(0deg); }
+/* ── Design tokens ── */
+:root {
+  --ig-purple: #833AB4;
+  --ig-pink:   #E1306C;
+  --ig-orange: #F77737;
 }
 
+/* ── Gradient utilities ── */
+.ig-btn {
+  background: linear-gradient(135deg, #833AB4 0%, #E1306C 50%, #F77737 100%);
+  color: white;
+}
+.ig-text {
+  background: linear-gradient(135deg, #833AB4, #E1306C, #F77737);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+.ig-border {
+  border-image: linear-gradient(135deg, #833AB4, #E1306C, #F77737) 1;
+}
+
+/* ── Animations ── */
+@keyframes pet-happy {
+  0%,100% { transform: scale(1) rotate(0deg); }
+  20%     { transform: scale(1.4) rotate(-14deg); }
+  50%     { transform: scale(1.25) rotate(10deg); }
+  75%     { transform: scale(1.1) rotate(-6deg); }
+}
 @keyframes pet-shake {
   0%,100% { transform: translateX(0); }
-  20%     { transform: translateX(-8px); }
-  40%     { transform: translateX(8px); }
+  20%     { transform: translateX(-8px) rotate(-4deg); }
+  40%     { transform: translateX(8px) rotate(4deg); }
   60%     { transform: translateX(-5px); }
   80%     { transform: translateX(5px); }
 }
-
 @keyframes speech-pop {
-  0%   { opacity: 0; transform: scale(0.8) translateY(6px); }
-  60%  { transform: scale(1.05) translateY(-1px); }
+  0%   { opacity: 0; transform: scale(0.8) translateY(8px); }
+  60%  { transform: scale(1.04) translateY(-1px); }
   100% { opacity: 1; transform: scale(1) translateY(0); }
 }
-
-@keyframes evo-flash {
-  0%,100% { opacity: 1; }
-  50%     { opacity: 0.3; }
+@keyframes evo-pulse {
+  0%,100% { opacity: 1; transform: scale(1); }
+  50%     { opacity: 0.4; transform: scale(0.9); }
+}
+@keyframes float {
+  0%,100% { transform: translateY(0); }
+  50%     { transform: translateY(-6px); }
 }
 
 .animate-pet-happy { animation: pet-happy 0.55s ease-in-out; }
 .animate-pet-shake { animation: pet-shake 0.4s ease-in-out; }
 .animate-speech    { animation: speech-pop 0.3s ease-out both; }
-.animate-evo-flash { animation: evo-flash 0.6s ease-in-out infinite; }
+.animate-evo-pulse { animation: evo-pulse 0.7s ease-in-out infinite; }
+.animate-float     { animation: float 3s ease-in-out infinite; }

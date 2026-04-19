@@ -14,143 +14,262 @@ export type Stage = {
   message: (name: string) => string;
 };
 
+// ─────────────────────────────────────────────────────────
+// 36 stages: 1 egg + 5 pup + 10 young + 20 adult
+// ─────────────────────────────────────────────────────────
 export const STAGES: Record<string, Stage> = {
+
+  // ── EGG ──────────────────────────────────────────────────
   egg: {
     id: "egg", branch: "egg", level: "egg",
-    name: "たまご", emoji: "🥚", sizePx: 110,
-    bgFrom: "#fef9c3", bgTo: "#fef08a",
+    name: "たまご", emoji: "🥚", sizePx: 100,
+    bgFrom: "#fef9c3", bgTo: "#fde68a",
     message: () => "なにかが孵化しそう...名前をつけてあげよう！",
   },
 
-  // ── アクティブ (元気) ───────────────────────────────────────────
+  // ── PUP × 5 ──────────────────────────────────────────────
   active_pup: {
     id: "active_pup", branch: "active", level: "pup",
-    name: "元気な幼犬ちくわ", emoji: "🐕", sizePx: 90,
+    name: "元気な幼犬ちくわ", emoji: "🐕", sizePx: 80,
     bgFrom: "#fed7aa", bgTo: "#fb923c",
     message: (n) => `${n}は元気いっぱいだワン！`,
   },
-  active_young: {
-    id: "active_young", branch: "active", level: "young",
-    name: "やんちゃな子犬ちくわ", emoji: "🐕‍🦺", sizePx: 130,
-    bgFrom: "#fcd34d", bgTo: "#f59e0b",
-    message: (n) => `${n}はやんちゃで止まらないワン🏃`,
-  },
-  active_adult: {
-    id: "active_adult", branch: "active", level: "adult",
-    name: "アクティブなちくわ", emoji: "🦮", sizePx: 180,
-    bgFrom: "#f59e0b", bgTo: "#b45309",
-    job: "警察犬",
-    message: (n) => `${n}は立派なアクティブちくわになったワン！🎉`,
-  },
-
-  // ── スウィート (甘えん坊) ──────────────────────────────────────
   sweet_pup: {
     id: "sweet_pup", branch: "sweet", level: "pup",
-    name: "あまえんぼうな幼犬ちくわ", emoji: "🐶", sizePx: 90,
+    name: "あまえんぼうな幼犬ちくわ", emoji: "🐶", sizePx: 80,
     bgFrom: "#fce7f3", bgTo: "#fbcfe8",
     message: (n) => `${n}はなでてほしいワン💝`,
   },
-  sweet_young: {
-    id: "sweet_young", branch: "sweet", level: "young",
-    name: "ふわふわの子犬ちくわ", emoji: "🐩", sizePx: 130,
-    bgFrom: "#f9a8d4", bgTo: "#ec4899",
-    message: (n) => `${n}はふわふわでかわいいワン✨`,
-  },
-  sweet_adult: {
-    id: "sweet_adult", branch: "sweet", level: "adult",
-    name: "スウィートなちくわ", emoji: "🐩", sizePx: 180,
-    bgFrom: "#ec4899", bgTo: "#be185d",
-    job: "セラピー犬",
-    message: (n) => `${n}は最高のスウィートちくわだワン👑`,
-  },
-
-  // ── VIP (おしゃれ) ─────────────────────────────────────────────
   vip_pup: {
     id: "vip_pup", branch: "vip", level: "pup",
-    name: "おしゃれな幼犬ちくわ", emoji: "🐶", sizePx: 90,
-    bgFrom: "#e9d5ff", bgTo: "#c084fc",
+    name: "おしゃれな幼犬ちくわ", emoji: "🌸", sizePx: 80,
+    bgFrom: "#f3e8ff", bgTo: "#e9d5ff",
     message: (n) => `${n}はおしゃれが大好きだワン✨`,
   },
-  vip_young: {
-    id: "vip_young", branch: "vip", level: "young",
-    name: "きらきらの子犬ちくわ", emoji: "🌸", sizePx: 130,
-    bgFrom: "#c084fc", bgTo: "#9333ea",
-    message: (n) => `${n}はどんどん輝いてるワン💫`,
-  },
-  vip_adult: {
-    id: "vip_adult", branch: "vip", level: "adult",
-    name: "スーパーアイドルちくわ", emoji: "🌟", sizePx: 180,
-    bgFrom: "#9333ea", bgTo: "#6b21a8",
-    job: "アイドル犬",
-    message: (n) => `${n}はトップアイドルになったワン👑`,
-  },
-
-  // ── ワイルド (マイペース) ──────────────────────────────────────
   wild_pup: {
     id: "wild_pup", branch: "wild", level: "pup",
-    name: "マイペースな幼犬ちくわ", emoji: "🐾", sizePx: 90,
+    name: "マイペースな幼犬ちくわ", emoji: "🐾", sizePx: 80,
     bgFrom: "#d1fae5", bgTo: "#6ee7b7",
     message: (n) => `${n}はマイペースだワン🌿`,
   },
-  wild_young: {
-    id: "wild_young", branch: "wild", level: "young",
-    name: "じゆうな子犬ちくわ", emoji: "🦊", sizePx: 130,
-    bgFrom: "#6ee7b7", bgTo: "#059669",
-    message: (n) => `${n}は自由に生きてるワン🌲`,
-  },
-  wild_adult: {
-    id: "wild_adult", branch: "wild", level: "adult",
-    name: "ウルフちくわ", emoji: "🐺", sizePx: 180,
-    bgFrom: "#059669", bgTo: "#065f46",
-    job: "山岳救助犬",
-    message: (n) => `${n}は伝説のウルフちくわになったワン🐺`,
-  },
-
-  // ── バランス (万能) ────────────────────────────────────────────
   balance_pup: {
     id: "balance_pup", branch: "balance", level: "pup",
-    name: "やさしい幼犬ちくわ", emoji: "🐾", sizePx: 90,
-    bgFrom: "#e0f2fe", bgTo: "#7dd3fc",
+    name: "やさしい幼犬ちくわ", emoji: "⭐", sizePx: 80,
+    bgFrom: "#e0f2fe", bgTo: "#bae6fd",
     message: (n) => `${n}はやさしい子だワン⭐`,
   },
-  balance_young: {
-    id: "balance_young", branch: "balance", level: "young",
-    name: "おりこうな子犬ちくわ", emoji: "⭐", sizePx: 130,
-    bgFrom: "#7dd3fc", bgTo: "#0ea5e9",
-    message: (n) => `${n}はおりこうで万能だワン🌟`,
+
+  // ── YOUNG × 10 ────────────────────────────────────────────
+  active_young_a: {
+    id: "active_young_a", branch: "active", level: "young",
+    name: "マラソン子犬ちくわ", emoji: "🐕‍🦺", sizePx: 120,
+    bgFrom: "#fcd34d", bgTo: "#f97316",
+    message: (n) => `${n}は走るのが好きだワン🏃`,
   },
-  balance_adult: {
-    id: "balance_adult", branch: "balance", level: "adult",
-    name: "パーフェクトなちくわ", emoji: "👑", sizePx: 180,
-    bgFrom: "#0ea5e9", bgTo: "#0369a1",
-    job: "万能犬",
-    message: (n) => `${n}はパーフェクトなちくわになったワン👑`,
+  active_young_b: {
+    id: "active_young_b", branch: "active", level: "young",
+    name: "スポーツ子犬ちくわ", emoji: "🐕", sizePx: 120,
+    bgFrom: "#fbbf24", bgTo: "#ea580c",
+    message: (n) => `${n}はスポーツが得意だワン🏋️`,
+  },
+  sweet_young_a: {
+    id: "sweet_young_a", branch: "sweet", level: "young",
+    name: "ふわふわの子犬ちくわ", emoji: "🐩", sizePx: 120,
+    bgFrom: "#f9a8d4", bgTo: "#f472b6",
+    message: (n) => `${n}はふわふわでかわいいワン✨`,
+  },
+  sweet_young_b: {
+    id: "sweet_young_b", branch: "sweet", level: "young",
+    name: "ハグ好き子犬ちくわ", emoji: "🐶", sizePx: 120,
+    bgFrom: "#fda4af", bgTo: "#fb7185",
+    message: (n) => `${n}はハグが大好きだワン💕`,
+  },
+  vip_young_a: {
+    id: "vip_young_a", branch: "vip", level: "young",
+    name: "きらきらの子犬ちくわ", emoji: "✨", sizePx: 120,
+    bgFrom: "#d8b4fe", bgTo: "#a855f7",
+    message: (n) => `${n}はキラキラ輝いてるワン💫`,
+  },
+  vip_young_b: {
+    id: "vip_young_b", branch: "vip", level: "young",
+    name: "グラマラス子犬ちくわ", emoji: "💎", sizePx: 120,
+    bgFrom: "#c084fc", bgTo: "#9333ea",
+    message: (n) => `${n}はグラマラスだワン💎`,
+  },
+  wild_young_a: {
+    id: "wild_young_a", branch: "wild", level: "young",
+    name: "じゆうな子犬ちくわ", emoji: "🦊", sizePx: 120,
+    bgFrom: "#6ee7b7", bgTo: "#10b981",
+    message: (n) => `${n}は自由に生きてるワン🌲`,
+  },
+  wild_young_b: {
+    id: "wild_young_b", branch: "wild", level: "young",
+    name: "タフな子犬ちくわ", emoji: "🐺", sizePx: 120,
+    bgFrom: "#34d399", bgTo: "#059669",
+    message: (n) => `${n}はタフで強いワン💪`,
+  },
+  balance_young_a: {
+    id: "balance_young_a", branch: "balance", level: "young",
+    name: "おりこうな子犬ちくわ", emoji: "🎓", sizePx: 120,
+    bgFrom: "#7dd3fc", bgTo: "#38bdf8",
+    message: (n) => `${n}はとてもおりこうだワン🎓`,
+  },
+  balance_young_b: {
+    id: "balance_young_b", branch: "balance", level: "young",
+    name: "おだやかな子犬ちくわ", emoji: "🌿", sizePx: 120,
+    bgFrom: "#bae6fd", bgTo: "#0ea5e9",
+    message: (n) => `${n}はおだやかで癒しだワン🌿`,
+  },
+
+  // ── ADULT × 20 ────────────────────────────────────────────
+  // active × 4
+  active_adult_aa: {
+    id: "active_adult_aa", branch: "active", level: "adult",
+    name: "アスリートちくわ", emoji: "🏆", sizePx: 170,
+    bgFrom: "#f59e0b", bgTo: "#b45309", job: "警察犬",
+    message: (n) => `${n}は最強のアスリートになったワン！🏆`,
+  },
+  active_adult_ab: {
+    id: "active_adult_ab", branch: "active", level: "adult",
+    name: "ランナーちくわ", emoji: "🦮", sizePx: 170,
+    bgFrom: "#fb923c", bgTo: "#c2410c", job: "救助犬",
+    message: (n) => `${n}は颯爽と走るランナーだワン🦮`,
+  },
+  active_adult_ba: {
+    id: "active_adult_ba", branch: "active", level: "adult",
+    name: "フィットネスちくわ", emoji: "🐕‍🦺", sizePx: 170,
+    bgFrom: "#f97316", bgTo: "#9a3412", job: "消防犬",
+    message: (n) => `${n}はフィットネス大好きだワン💪`,
+  },
+  active_adult_bb: {
+    id: "active_adult_bb", branch: "active", level: "adult",
+    name: "エクスプローラーちくわ", emoji: "🗺️", sizePx: 170,
+    bgFrom: "#ea580c", bgTo: "#7c2d12", job: "山岳犬",
+    message: (n) => `${n}は世界を探検するワン🗺️`,
+  },
+  // sweet × 4
+  sweet_adult_aa: {
+    id: "sweet_adult_aa", branch: "sweet", level: "adult",
+    name: "セラピーちくわ", emoji: "💝", sizePx: 170,
+    bgFrom: "#ec4899", bgTo: "#be185d", job: "セラピー犬",
+    message: (n) => `${n}は人を癒すセラピーちくわだワン💝`,
+  },
+  sweet_adult_ab: {
+    id: "sweet_adult_ab", branch: "sweet", level: "adult",
+    name: "ナデナデちくわ", emoji: "🐩", sizePx: 170,
+    bgFrom: "#f43f5e", bgTo: "#be123c", job: "盲導犬",
+    message: (n) => `${n}はなでなでが大好きだワン🤗`,
+  },
+  sweet_adult_ba: {
+    id: "sweet_adult_ba", branch: "sweet", level: "adult",
+    name: "ラブリーちくわ", emoji: "💗", sizePx: 170,
+    bgFrom: "#fb7185", bgTo: "#e11d48", job: "介護犬",
+    message: (n) => `${n}はラブリーで最高だワン💗`,
+  },
+  sweet_adult_bb: {
+    id: "sweet_adult_bb", branch: "sweet", level: "adult",
+    name: "ファミリーちくわ", emoji: "🏠", sizePx: 170,
+    bgFrom: "#fda4af", bgTo: "#fb7185", job: "家族犬",
+    message: (n) => `${n}は家族みんなに愛されるワン🏠`,
+  },
+  // vip × 4
+  vip_adult_aa: {
+    id: "vip_adult_aa", branch: "vip", level: "adult",
+    name: "スーパーアイドルちくわ", emoji: "🌟", sizePx: 170,
+    bgFrom: "#9333ea", bgTo: "#6b21a8", job: "アイドル犬",
+    message: (n) => `${n}はトップアイドルになったワン👑`,
+  },
+  vip_adult_ab: {
+    id: "vip_adult_ab", branch: "vip", level: "adult",
+    name: "セレブちくわ", emoji: "💎", sizePx: 170,
+    bgFrom: "#7c3aed", bgTo: "#5b21b6", job: "モデル犬",
+    message: (n) => `${n}はセレブで輝いてるワン💎`,
+  },
+  vip_adult_ba: {
+    id: "vip_adult_ba", branch: "vip", level: "adult",
+    name: "キラキラちくわ", emoji: "🔮", sizePx: 170,
+    bgFrom: "#a855f7", bgTo: "#7e22ce", job: "芸能犬",
+    message: (n) => `${n}はキラキラの芸能犬だワン🔮`,
+  },
+  vip_adult_bb: {
+    id: "vip_adult_bb", branch: "vip", level: "adult",
+    name: "エレガントちくわ", emoji: "🎀", sizePx: 170,
+    bgFrom: "#c084fc", bgTo: "#9333ea", job: "ファッション犬",
+    message: (n) => `${n}はエレガントなファッション犬だワン🎀`,
+  },
+  // wild × 4
+  wild_adult_aa: {
+    id: "wild_adult_aa", branch: "wild", level: "adult",
+    name: "ウルフちくわ", emoji: "🐺", sizePx: 170,
+    bgFrom: "#059669", bgTo: "#065f46", job: "山岳救助犬",
+    message: (n) => `${n}は伝説のウルフちくわだワン🐺`,
+  },
+  wild_adult_ab: {
+    id: "wild_adult_ab", branch: "wild", level: "adult",
+    name: "ハンターちくわ", emoji: "🏹", sizePx: 170,
+    bgFrom: "#047857", bgTo: "#064e3b", job: "猟犬",
+    message: (n) => `${n}は最強のハンターだワン🏹`,
+  },
+  wild_adult_ba: {
+    id: "wild_adult_ba", branch: "wild", level: "adult",
+    name: "ワイルドちくわ", emoji: "🌿", sizePx: 170,
+    bgFrom: "#10b981", bgTo: "#065f46", job: "牧場犬",
+    message: (n) => `${n}はワイルドに生きるワン🌿`,
+  },
+  wild_adult_bb: {
+    id: "wild_adult_bb", branch: "wild", level: "adult",
+    name: "サバイバーちくわ", emoji: "🏕️", sizePx: 170,
+    bgFrom: "#34d399", bgTo: "#047857", job: "野外犬",
+    message: (n) => `${n}はサバイバーちくわだワン🏕️`,
+  },
+  // balance × 4
+  balance_adult_aa: {
+    id: "balance_adult_aa", branch: "balance", level: "adult",
+    name: "パーフェクトちくわ", emoji: "👑", sizePx: 170,
+    bgFrom: "#0ea5e9", bgTo: "#0369a1", job: "万能犬",
+    message: (n) => `${n}はパーフェクトなちくわだワン👑`,
+  },
+  balance_adult_ab: {
+    id: "balance_adult_ab", branch: "balance", level: "adult",
+    name: "スーパーちくわ", emoji: "🌈", sizePx: 170,
+    bgFrom: "#0284c7", bgTo: "#075985", job: "外交官犬",
+    message: (n) => `${n}はスーパーな外交官だワン🌈`,
+  },
+  balance_adult_ba: {
+    id: "balance_adult_ba", branch: "balance", level: "adult",
+    name: "ジェントルちくわ", emoji: "🌸", sizePx: 170,
+    bgFrom: "#38bdf8", bgTo: "#0284c7", job: "看板犬",
+    message: (n) => `${n}はジェントルで優しいワン🌸`,
+  },
+  balance_adult_bb: {
+    id: "balance_adult_bb", branch: "balance", level: "adult",
+    name: "ナチュラルちくわ", emoji: "🍃", sizePx: 170,
+    bgFrom: "#7dd3fc", bgTo: "#0369a1", job: "研究犬",
+    message: (n) => `${n}はナチュラルな研究犬だワン🍃`,
   },
 };
 
-// Days-alive at which to evolve out of each stage
+// ── Evolution day thresholds ────────────────────────────────
 export const EVO_AT_DAY: Record<string, number> = {
-  egg:           3,
-  active_pup:    7,  sweet_pup:    7,  vip_pup:    7,  wild_pup:    7,  balance_pup:    7,
-  active_young: 14,  sweet_young: 14,  vip_young: 14,  wild_young: 14,  balance_young: 14,
-  // adult stages "graduate" at day 30 (handled separately in ChikuwaApp)
+  egg: 3,
+  active_pup: 7,  sweet_pup: 7,  vip_pup: 7,  wild_pup: 7,  balance_pup: 7,
+  active_young_a: 14, active_young_b: 14,
+  sweet_young_a:  14, sweet_young_b:  14,
+  vip_young_a:    14, vip_young_b:    14,
+  wild_young_a:   14, wild_young_b:   14,
+  balance_young_a:14, balance_young_b:14,
+  // adult stages graduate at day 30 (handled separately)
 };
 
-export const NEXT_STAGE: Record<string, string> = {
-  active_pup:   "active_young",   sweet_pup:   "sweet_young",   vip_pup:   "vip_young",
-  wild_pup:     "wild_young",     balance_pup: "balance_young",
-  active_young: "active_adult",   sweet_young: "sweet_adult",   vip_young: "vip_adult",
-  wild_young:   "wild_adult",     balance_young: "balance_adult",
-};
-
+// ── Branch metadata ──────────────────────────────────────────
 export const BRANCHES: BranchId[] = ["active", "sweet", "vip", "wild", "balance"];
 
-export const BRANCH_LABELS: Record<BranchId, { label: string; desc: string; colorClass: string }> = {
-  active:  { label: "アクティブ", desc: "よく歩くと進む道",          colorClass: "bg-orange-100 border-orange-300" },
-  sweet:   { label: "スウィート", desc: "よくなでると進む道",        colorClass: "bg-pink-100 border-pink-300" },
-  vip:     { label: "VIP",       desc: "高級アイテムを使うと進む道", colorClass: "bg-purple-100 border-purple-300" },
-  wild:    { label: "ワイルド",   desc: "マイペースに育つと進む道",  colorClass: "bg-green-100 border-green-300" },
-  balance: { label: "バランス",   desc: "バランスよく育てると進む道",colorClass: "bg-sky-100 border-sky-300" },
+export const BRANCH_INFO: Record<BranchId, { label: string; desc: string; gradient: string }> = {
+  active:  { label: "アクティブ", desc: "よく歩くと進む道",          gradient: "from-orange-400 to-amber-500" },
+  sweet:   { label: "スウィート", desc: "よくなでると進む道",        gradient: "from-pink-400 to-rose-500" },
+  vip:     { label: "VIP",       desc: "高級アイテムを使うと進む道", gradient: "from-purple-500 to-violet-600" },
+  wild:    { label: "ワイルド",   desc: "マイペースに育つと進む道",  gradient: "from-green-400 to-emerald-600" },
+  balance: { label: "バランス",   desc: "バランスよく育てると進む道",gradient: "from-sky-400 to-blue-500" },
 };
 
 export type CareProfile = {
@@ -162,23 +281,19 @@ export type CareProfile = {
   vipItemsUsed: number;
 };
 
-export function determineBranch(
-  care: CareProfile,
-  totalSteps: number,
-  vip: number
-): BranchId {
+// ── Branch determination functions ──────────────────────────
+
+export function determineBranch(care: CareProfile, totalSteps: number, vip: number): BranchId {
   const stepScore    = totalSteps / 10;
   const careScore    = care.feedCount * 3 + care.waterCount * 3 + care.petCount * 2;
   const vipScore     = vip * 2 + care.vipItemsUsed * 10;
   const neglectScore = care.neglectEvents * 10;
 
-  // VIP requires a clear threshold AND dominance
   if (vipScore >= 30 && vipScore >= stepScore && vipScore >= careScore && vipScore >= neglectScore) return "vip";
 
   const max = Math.max(stepScore, careScore, neglectScore);
   if (max < 5) return "balance";
 
-  // Two top scores within 65% of max → balanced
   const topCount = [stepScore, careScore, neglectScore].filter(s => s >= max * 0.65).length;
   if (topCount >= 2) return "balance";
 
@@ -188,12 +303,68 @@ export function determineBranch(
   return "balance";
 }
 
+function determineYoungVariant(branch: BranchId, care: CareProfile, totalSteps: number, vip: number): "a" | "b" {
+  switch (branch) {
+    case "active":  return totalSteps > 1000                                ? "a" : "b";
+    case "sweet":   return care.petCount > 10                               ? "a" : "b";
+    case "vip":     return vip > 20 || care.vipItemsUsed > 2               ? "a" : "b";
+    case "wild":    return care.neglectEvents > 1                           ? "a" : "b";
+    case "balance": return (care.feedCount + care.waterCount) > 15          ? "a" : "b";
+  }
+}
+
+function determineAdultVariant(branch: BranchId, care: CareProfile, totalSteps: number, vip: number): "a" | "b" {
+  switch (branch) {
+    case "active":  return totalSteps > 5000                                          ? "a" : "b";
+    case "sweet":   return care.petCount > 30                                         ? "a" : "b";
+    case "vip":     return vip > 50                                                   ? "a" : "b";
+    case "wild":    return care.neglectEvents > 3                                     ? "a" : "b";
+    case "balance": return (care.feedCount + care.waterCount + care.petCount) > 50   ? "a" : "b";
+  }
+}
+
+export function getEvolutionTarget(
+  stageId: string,
+  care: CareProfile,
+  totalSteps: number,
+  vip: number
+): string | null {
+  if (stageId === "egg") {
+    return `${determineBranch(care, totalSteps, vip)}_pup`;
+  }
+  if (stageId.endsWith("_pup")) {
+    const branch = stageId.replace("_pup", "") as BranchId;
+    const v = determineYoungVariant(branch, care, totalSteps, vip);
+    return `${branch}_young_${v}`;
+  }
+  if (stageId.includes("_young_")) {
+    const parts = stageId.split("_"); // ["active","young","a"]
+    const branch   = parts[0] as BranchId;
+    const prevV    = parts[2] as "a" | "b";
+    const newV     = determineAdultVariant(branch, care, totalSteps, vip);
+    return `${branch}_adult_${prevV}${newV}`;
+  }
+  return null; // adult stages handled separately (day-30 graduation)
+}
+
+// Migrate old stage IDs to new format
+export function migrateStageId(id: string): string {
+  const map: Record<string, string> = {
+    baby: "egg",
+    active_1: "active_pup",  active_2: "active_young_a",  active_3: "active_adult_aa",
+    sweet_1:  "sweet_pup",   sweet_2:  "sweet_young_a",   sweet_3:  "sweet_adult_aa",
+    idol_1:   "vip_pup",     idol_2:   "vip_young_a",     idol_3:   "vip_adult_aa",
+    wild_1:   "wild_pup",    wild_2:   "wild_young_a",    wild_3:   "wild_adult_aa",
+    balance_1:"balance_pup", balance_2:"balance_young_a", balance_3:"balance_adult_aa",
+  };
+  const migrated = map[id] ?? id;
+  return STAGES[migrated] ? migrated : "egg";
+}
+
 export const DAILY_GOAL = 8_000;
 
 export type WeatherInfo = {
-  emoji: string;
-  label: string;
-  walkAdvice: string;
+  emoji: string; label: string; walkAdvice: string;
   scene: "outdoor" | "indoor_rain" | "indoor_snow";
 };
 

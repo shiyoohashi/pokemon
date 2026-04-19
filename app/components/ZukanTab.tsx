@@ -1,121 +1,156 @@
 "use client";
 
-import { STAGES, BRANCHES, BRANCH_LABELS, type BranchId } from "../data/dogStages";
+import { useState } from "react";
+import { STAGES, BRANCHES, BRANCH_INFO, type BranchId } from "../data/dogStages";
 
-const LEVELS = ["pup", "young", "adult"] as const;
-const LEVEL_LABELS: Record<string, string> = {
-  pup:   "幼犬（3〜7日）",
-  young: "子犬（7〜14日）",
-  adult: "成犬（14〜30日）",
+type Props = { currentStageId: string };
+
+const YOUNG_IDS: Record<BranchId, [string, string]> = {
+  active:  ["active_young_a",  "active_young_b"],
+  sweet:   ["sweet_young_a",   "sweet_young_b"],
+  vip:     ["vip_young_a",     "vip_young_b"],
+  wild:    ["wild_young_a",    "wild_young_b"],
+  balance: ["balance_young_a", "balance_young_b"],
+};
+const ADULT_IDS: Record<BranchId, [[string, string], [string, string]]> = {
+  active:  [["active_adult_aa",  "active_adult_ab"],  ["active_adult_ba",  "active_adult_bb"]],
+  sweet:   [["sweet_adult_aa",   "sweet_adult_ab"],   ["sweet_adult_ba",   "sweet_adult_bb"]],
+  vip:     [["vip_adult_aa",     "vip_adult_ab"],     ["vip_adult_ba",     "vip_adult_bb"]],
+  wild:    [["wild_adult_aa",    "wild_adult_ab"],     ["wild_adult_ba",    "wild_adult_bb"]],
+  balance: [["balance_adult_aa", "balance_adult_ab"], ["balance_adult_ba", "balance_adult_bb"]],
 };
 
-type Props = {
-  currentStageId: string;
-};
+function StageCard({ id, current, small }: { id: string; current: boolean; small?: boolean }) {
+  const s = STAGES[id];
+  if (!s) return null;
+  return (
+    <div className={`flex flex-col items-center gap-0.5 rounded-xl p-1.5 min-w-0 transition-all ${
+      current ? "ring-2 bg-white" : "bg-gray-50"
+    }`}
+    style={current ? { outline: "2px solid #E1306C", outlineOffset: "1px" } : {}}>
+      <span className={small ? "text-xl leading-none" : "text-2xl leading-none"}>{s.emoji}</span>
+      <p className={`font-bold text-center text-gray-700 leading-tight ${small ? "text-[8px]" : "text-[9px]"}`}
+         style={{ wordBreak: "keep-all" }}>
+        {s.name.replace("ちくわ", "\nちくわ")}
+      </p>
+      {s.job && <p className="text-[7px] text-gray-400 bg-gray-100 rounded px-1">{s.job}</p>}
+    </div>
+  );
+}
 
 export default function ZukanTab({ currentStageId }: Props) {
-  const currentStage = STAGES[currentStageId];
+  const [openBranch, setOpenBranch] = useState<BranchId | null>(null);
+  const currentStage  = STAGES[currentStageId];
   const currentBranch = currentStage?.branch;
-  const currentLevel  = currentStage?.level;
-
-  function isUnlocked(branch: BranchId, level: string): boolean {
-    const levelOrder = ["pup", "young", "adult"];
-    const currentLevelIdx = levelOrder.indexOf(currentLevel ?? "");
-    const targetLevelIdx  = levelOrder.indexOf(level);
-
-    if (currentBranch === "egg") return false;
-    if (currentBranch !== branch) return false;
-    return targetLevelIdx <= currentLevelIdx;
-  }
 
   return (
-    <div className="px-4 py-4 flex flex-col gap-5">
-      <div className="text-center">
-        <h2 className="text-xl font-black text-amber-900">📖 進化図鑑</h2>
-        <p className="text-xs text-amber-600 mt-0.5">どんなちくわになれるか見てみよう！</p>
+    <div className="px-4 py-4 flex flex-col gap-4">
+      <div className="pt-2">
+        <h2 className="text-lg font-black text-gray-900">📖 進化図鑑</h2>
+        <p className="text-xs text-gray-500 mt-0.5">1 → 5 → 10 → 20 の進化ツリー</p>
       </div>
 
       {/* Egg */}
-      <div className="bg-yellow-50 border-2 border-yellow-200 rounded-2xl p-4 flex items-center gap-3">
+      <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 flex items-center gap-3">
         <span className="text-4xl">🥚</span>
         <div>
-          <p className="font-black text-amber-900">たまご</p>
-          <p className="text-xs text-amber-600">すべてのちくわはここから始まる</p>
-          <p className="text-[10px] text-amber-500 mt-0.5">→ 3日後に幼犬に進化！</p>
+          <p className="font-black text-gray-900 text-sm">たまご（1種）</p>
+          <p className="text-xs text-gray-500">すべてはここから始まる</p>
+          <p className="text-[10px] text-gray-400 mt-0.5">→ Day 3 で幼犬（5種）に分岐</p>
         </div>
+        {currentStageId === "egg" && (
+          <div className="ml-auto text-[10px] font-bold text-white px-2 py-0.5 rounded-full"
+               style={{ background: "#E1306C" }}>いまここ</div>
+        )}
       </div>
 
-      {/* 5 branches */}
+      {/* Branches */}
       {BRANCHES.map(branch => {
-        const info = BRANCH_LABELS[branch];
-        const isCurrentBranch = currentBranch === branch;
+        const info     = BRANCH_INFO[branch];
+        const pup      = STAGES[`${branch}_pup`];
+        const isOpen   = openBranch === branch;
+        const isCurrent = currentBranch === branch;
+
         return (
-          <div
-            key={branch}
-            className={`rounded-2xl border-2 overflow-hidden ${
-              isCurrentBranch ? "border-amber-400 shadow-md" : "border-gray-200"
-            }`}
-          >
+          <div key={branch} className={`bg-white rounded-2xl shadow-sm overflow-hidden border ${
+            isCurrent ? "border-[#E1306C]" : "border-gray-100"
+          }`}>
             {/* Branch header */}
-            <div className={`px-4 py-2.5 flex items-center justify-between ${info.colorClass}`}>
-              <div>
-                <span className="font-black text-sm text-gray-800">{info.label}なちくわ道</span>
-                <p className="text-[10px] text-gray-600">{info.desc}</p>
+            <button
+              className="w-full flex items-center gap-3 px-4 py-3"
+              onClick={() => setOpenBranch(isOpen ? null : branch)}
+            >
+              <div className={`w-8 h-8 rounded-full bg-gradient-to-br ${info.gradient} flex items-center justify-center text-white font-black text-xs`}>
+                {pup?.emoji}
               </div>
-              {isCurrentBranch && (
-                <span className="text-[10px] font-bold bg-amber-400 text-white px-2 py-0.5 rounded-full">
-                  いまここ！
-                </span>
+              <div className="flex-1 text-left">
+                <p className="font-black text-sm text-gray-900">{info.label}なちくわ道</p>
+                <p className="text-[10px] text-gray-500">{info.desc}</p>
+              </div>
+              {isCurrent && (
+                <span className="text-[10px] font-bold text-white px-2 py-0.5 rounded-full flex-shrink-0"
+                      style={{ background: "#E1306C" }}>いまここ</span>
               )}
-            </div>
+              <span className="text-gray-400 text-xs ml-1">{isOpen ? "▲" : "▼"}</span>
+            </button>
 
-            {/* Stages */}
-            <div className="bg-white/80 flex items-center px-3 py-3 gap-1">
-              {LEVELS.map((level, i) => {
-                const stageId = `${branch}_${level}`;
-                const stage   = STAGES[stageId];
-                if (!stage) return null;
-                const unlocked = isUnlocked(branch, level);
-                const isCurrent = currentStageId === stageId;
-                return (
-                  <div key={stageId} className="flex items-center gap-1 flex-1 min-w-0">
-                    <div className={`flex-1 flex flex-col items-center gap-0.5 rounded-xl p-2 transition-all ${
-                      isCurrent ? "bg-amber-100 ring-2 ring-amber-400" :
-                      unlocked  ? "bg-gray-50" : "bg-gray-100 opacity-50"
-                    }`}>
-                      <span className="text-2xl leading-none">{unlocked ? stage.emoji : "❓"}</span>
-                      <p className="text-[9px] font-bold text-center text-gray-700 leading-tight line-clamp-2">
-                        {unlocked ? stage.name : "？？？"}
-                      </p>
-                      <p className="text-[8px] text-gray-400">{LEVEL_LABELS[level].split("（")[0]}</p>
-                    </div>
-                    {i < LEVELS.length - 1 && (
-                      <span className="text-gray-300 text-xs flex-shrink-0">→</span>
-                    )}
-                  </div>
-                );
-              })}
-
-              {/* Job */}
-              <span className="text-gray-300 text-xs flex-shrink-0">→</span>
-              <div className={`flex flex-col items-center gap-0.5 rounded-xl p-2 bg-gray-100 ${
-                isUnlocked(branch, "adult") ? "opacity-100" : "opacity-40"
-              }`}>
-                <span className="text-lg leading-none">🏆</span>
-                <p className="text-[9px] font-bold text-center text-gray-600">
-                  {isUnlocked(branch, "adult")
-                    ? (STAGES[`${branch}_adult`]?.job ?? "？")
-                    : "？？？"}
-                </p>
-                <p className="text-[8px] text-gray-400">30日</p>
+            {/* Pup summary when collapsed */}
+            {!isOpen && (
+              <div className="px-4 pb-3 flex items-center gap-2">
+                <StageCard id={`${branch}_pup`} current={currentStageId === `${branch}_pup`} small />
+                <span className="text-gray-200 text-xs">→</span>
+                <p className="text-[10px] text-gray-400">子犬2種 → 成犬4種 → 職業</p>
               </div>
-            </div>
+            )}
+
+            {/* Full tree when open */}
+            {isOpen && (
+              <div className="px-3 pb-4 flex flex-col gap-3">
+                {/* Pup row */}
+                <div className="flex items-center gap-1">
+                  <p className="text-[9px] font-bold text-gray-500 w-8 flex-shrink-0">幼犬</p>
+                  <div className="flex-1">
+                    <StageCard id={`${branch}_pup`} current={currentStageId === `${branch}_pup`} />
+                  </div>
+                  <span className="text-gray-300 text-xs">→</span>
+                  <p className="text-[9px] text-gray-400 flex-shrink-0">2種に分岐</p>
+                </div>
+
+                {/* Young rows */}
+                {YOUNG_IDS[branch].map((youngId, yi) => {
+                  const adults = ADULT_IDS[branch][yi];
+                  return (
+                    <div key={youngId} className="border-t border-gray-50 pt-2">
+                      <div className="flex items-start gap-1">
+                        <p className="text-[9px] font-bold text-gray-500 w-8 flex-shrink-0 mt-1">子犬{yi + 1}</p>
+                        <div className="flex-shrink-0 w-20">
+                          <StageCard id={youngId} current={currentStageId === youngId} small />
+                        </div>
+                        <span className="text-gray-300 text-xs mt-2">→</span>
+                        <div className="flex-1 flex flex-col gap-1">
+                          <div className="flex gap-1">
+                            {adults.map(adultId => (
+                              <div key={adultId} className="flex-1">
+                                <StageCard id={adultId} current={currentStageId === adultId} small />
+                              </div>
+                            ))}
+                          </div>
+                          <p className="text-[8px] text-gray-400 text-center">
+                            {adults.map(id => STAGES[id]?.job).filter(Boolean).join(" / ")}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
           </div>
         );
       })}
 
-      <p className="text-center text-xs text-amber-400 pb-2">
-        毎日ケアして最高のちくわに育てよう🐾
+      <p className="text-center text-xs text-gray-400 pb-3">
+        全20種の成犬 + 5職業を目指そう🐾
       </p>
     </div>
   );

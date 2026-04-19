@@ -135,9 +135,9 @@ export default function MiniGameTab({ onEarnCoins }: { onEarnCoins: (n: number) 
 
   return (
     <div className="flex flex-col items-center gap-4 px-4 py-4">
-      <div className="text-center">
-        <h2 className="text-xl font-black text-amber-900">🏃 ちくわジャンプ！</h2>
-        <p className="text-xs text-amber-600">障害物を避けて「ちくわ券」をゲット！(5m = 1券)</p>
+      <div className="text-center pt-2">
+        <h2 className="text-xl font-black text-gray-900">🏃 ちくわジャンプ！</h2>
+        <p className="text-xs text-gray-500">障害物を避けて「ちくわ券」をゲット！(5m = 1券)</p>
       </div>
 
       <canvas
@@ -150,24 +150,26 @@ export default function MiniGameTab({ onEarnCoins }: { onEarnCoins: (n: number) 
       />
 
       {phase === "idle" && (
-        <button onClick={startGame} className="bg-amber-500 text-white font-black py-4 px-10 rounded-2xl text-lg shadow-md active:bg-amber-600">
+        <button onClick={startGame} className="text-white font-black py-4 px-10 rounded-2xl text-lg shadow-md"
+          style={{ background: "linear-gradient(135deg, #833AB4, #E1306C, #F77737)" }}>
           スタート！
         </button>
       )}
 
       {phase === "playing" && (
         <div className="text-center">
-          <p className="text-2xl font-black text-amber-800 tabular-nums">{score}m</p>
-          <p className="text-sm text-amber-600">タップでジャンプ！</p>
+          <p className="text-2xl font-black text-gray-900 tabular-nums">{score}m</p>
+          <p className="text-sm text-gray-500">タップでジャンプ！</p>
         </div>
       )}
 
       {phase === "over" && (
-        <div className="bg-white/70 rounded-2xl p-6 text-center w-full max-w-sm shadow">
-          <p className="text-2xl font-black text-amber-800 mb-1">ゲームオーバー！</p>
-          <p className="text-lg text-amber-700 mb-1">{score}m 走ったよ！</p>
-          <p className="text-2xl font-bold text-yellow-600 mb-5">🎟️ +{coins} ちくわ券 ゲット！</p>
-          <button onClick={startGame} className="bg-amber-500 text-white font-black py-3 px-8 rounded-2xl active:bg-amber-600">
+        <div className="bg-white rounded-2xl p-6 text-center w-full max-w-sm shadow-sm border border-gray-100">
+          <p className="text-2xl font-black text-gray-900 mb-1">ゲームオーバー！</p>
+          <p className="text-lg text-gray-600 mb-1">{score}m 走ったよ！</p>
+          <p className="text-2xl font-bold mb-5" style={{ color: "#E1306C" }}>🎟️ +{coins} ちくわ券 ゲット！</p>
+          <button onClick={startGame} className="text-white font-black py-3 px-8 rounded-2xl"
+            style={{ background: "linear-gradient(135deg, #833AB4, #E1306C, #F77737)" }}>
             もう一度！
           </button>
         </div>

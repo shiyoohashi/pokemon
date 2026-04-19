@@ -1,9 +1,17 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-  <rect width="512" height="512" rx="96" fill="#f59e0b"/>
-  <circle cx="170" cy="160" r="52" fill="#92400e"/>
-  <circle cx="342" cy="160" r="52" fill="#92400e"/>
-  <circle cx="130" cy="310" r="42" fill="#92400e"/>
-  <circle cx="382" cy="310" r="42" fill="#92400e"/>
-  <ellipse cx="256" cy="380" rx="100" ry="80" fill="#92400e"/>
-  <ellipse cx="256" cy="380" rx="82" ry="64" fill="#b45309"/>
+  <defs>
+    <linearGradient id="ig" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%"   stop-color="#833AB4"/>
+      <stop offset="50%"  stop-color="#E1306C"/>
+      <stop offset="100%" stop-color="#F77737"/>
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" rx="96" fill="url(#ig)"/>
+  <!-- Paw beans -->
+  <circle cx="170" cy="162" r="55" fill="white" opacity="0.92"/>
+  <circle cx="342" cy="162" r="55" fill="white" opacity="0.92"/>
+  <circle cx="124" cy="296" r="45" fill="white" opacity="0.92"/>
+  <circle cx="388" cy="296" r="45" fill="white" opacity="0.92"/>
+  <!-- Main pad -->
+  <ellipse cx="256" cy="376" rx="98" ry="80" fill="white" opacity="0.92"/>
 </svg>
